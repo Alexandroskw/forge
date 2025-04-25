@@ -57,7 +57,7 @@ forging_packages() {
         local to_forge=()
 
         for f in "${packages[@]}"; do
-                if ! is_forged "$f"
+                if ! is_forged "$f"; then
                         to_forge+=("$f")
                 fi
         done
