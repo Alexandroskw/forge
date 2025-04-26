@@ -4,6 +4,8 @@ DOTFILES_URL="https://github.com/alexandroskw/dotfiles"
 NAME="dotfiles"
 ALACRITTY_THEMES_URL="https://github.com/alacritty/alacritty-theme"
 THEMES_FOLDER="themes"
+TPM_URL="https://github.com/tmux-plugins/tpm"
+TPM_DIR="$HOME/tmux/plugins/tpm"
 
 # Changing to $HOME directory if you are in the Forge directory
 cd ~
@@ -40,3 +42,20 @@ if [ ! -d "$THEMES_FOLDER" ]; then
 else
         echo "The folder is forged. Skipping..."
 fi
+
+# Cloning the TPM for TMUX
+if [ -d "$TPM_DIR" ]; then
+        echo "The folder is not forged. Creating and cloning..."
+fi
+
+# Installing Starship framework
+STARSHIP="curl -sS https://starship.rs/install.sh | sh"
+
+# Function for clone all the packages
+cloning_repos() {
+        local repo=("$@")
+
+        if [ ! -d "$@" ]; then
+                echo "The ${@} is not forged. Creating and cloning"
+        fi
+}
