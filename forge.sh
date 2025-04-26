@@ -2,8 +2,7 @@
 
 # Forcing the script running as sudo
 if [ "$EUID" -ne 0 ]; then
-        echo "Run this script as sudo ($0)"
-        echo "Exiting..."
+        echo "Run the forge as sudo ($0). Exiting..."
         exit 1
 fi
 
@@ -81,7 +80,17 @@ forging_packages "${MEDIA_UTILS[@]}"
 echo "󰢛 Forging the desktop utilities"
 forging_packages "${DESK_UTILS[@]}"
 
-# Cleaning the terminal again
-clean
+# Cloning the dotfiles repository and verifying the execution permissions
+if [ -f "$(dirname "$0")/forge-dotfiles.sh" ];then
+        chmod +x "$(dirname "$0")/forge-dotfiles.sh"
+        "$(dirname "$0")/forge-dotfiles.sh"
+else
+        echo "forge-dotfiles not found. Skipping the dotfiles configuration..."
+fi
+
+# Showing the logo again and a message for reboot the system
 logo
-echo "The forge is close. Reboot your system please."
+echo "╔═══════════════════════════════════════════════════════╗"
+echo "║               󰢛 The forge is closed 󰢛                 ║"
+echo "║                 Reboot your system                    ║"
+echo "╚═══════════════════════════════════════════════════════╝"
