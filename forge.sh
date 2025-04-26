@@ -80,3 +80,9 @@ forging_packages "${MEDIA_UTILS[@]}"
 
 echo "󰢛 Forging the desktop utilities"
 forging_packages "${DESK_UTILS[@]}"
+
+# Cleaning again the terminal
+clean
+logo
+echo -e "\e[33mWarning: You set ZSH as your default shell"
+echo "The forge is closed. Reboot your system."
