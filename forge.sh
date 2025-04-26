@@ -80,3 +80,8 @@ forging_packages "${MEDIA_UTILS[@]}"
 
 echo "󰢛 Forging the desktop utilities"
 forging_packages "${DESK_UTILS[@]}"
+
+# Cleaning the terminal again
+clean
+logo
+echo "The forge is close. Reboot your system please."
