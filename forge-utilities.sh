@@ -31,26 +31,6 @@ else
         exit 1
 fi
 
-# Cloning the Alacritty themes repository
-cd "$HOME/.config/alacritty/" # Changing to the alacritty config path
-
-cloning_repos "$DOTFILES_URL" "$NAME"
-# if [ ! -d "$THEMES_FOLDER" ]; then
-#         echo "The folder is not forged. Creating and cloning..."
-#         # Creating the folder for the Alacritty themes repo
-#         git clone "$ALACRITTY_THEMES_URL" "$THEMES_FOLDER"
-# else
-#         echo "The folder is forged. Skipping..."
-# fi
-
-# Cloning the TPM for TMUX
-# if [ -d "$TPM_DIR" ]; then
-#         echo "The folder is not forged. Creating and cloning..."
-# fi
-
-# Installing Starship framework
-STARSHIP="curl -sS https://starship.rs/install.sh | sh"
-
 # Function for clone all the repos
 cloning_repos() {
         local repo_url="$1"
@@ -70,3 +50,23 @@ cloning_repos() {
                 exit 1
         fi
 }
+
+# Cloning the Alacritty themes repository
+cd "$HOME/.config/alacritty/" # Changing to the alacritty config path
+
+cloning_repos "$DOTFILES_URL" "$NAME"
+# if [ ! -d "$THEMES_FOLDER" ]; then
+#         echo "The folder is not forged. Creating and cloning..."
+#         # Creating the folder for the Alacritty themes repo
+#         git clone "$ALACRITTY_THEMES_URL" "$THEMES_FOLDER"
+# else
+#         echo "The folder is forged. Skipping..."
+# fi
+
+# Cloning the TPM for TMUX
+# if [ -d "$TPM_DIR" ]; then
+#         echo "The folder is not forged. Creating and cloning..."
+# fi
+
+# Installing Starship framework
+STARSHIP="curl -sS https://starship.rs/install.sh | sh"
