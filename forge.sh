@@ -81,11 +81,11 @@ echo "󰢛 Forging the desktop utilities"
 forging_packages "${DESK_UTILS[@]}"
 
 # Cloning the dotfiles repository and verifying the execution permissions
-if [ -f "$(dirname "$0")/forge-dotfiles.sh" ];then
-        chmod +x "$(dirname "$0")/forge-dotfiles.sh"
-        "$(dirname "$0")/forge-dotfiles.sh"
+if [ -f "$(dirname "$0")/forge-utilities.sh" ];then
+        chmod +x "$(dirname "$0")/forge-utilities.sh"
+        "$(dirname "$0")/forge-utilities.sh"
 else
-        echo "forge-dotfiles not found. Skipping the dotfiles configuration..."
+        echo "forge-utilities not found. Skipping the dotfiles configuration..."
 fi
 
 # Showing the logo again and a message for reboot the system
