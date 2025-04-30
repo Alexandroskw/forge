@@ -28,8 +28,8 @@ if [ $? -eq 0 ]; then
         su - "$SUDO_USER" -c "cd '$DOTFILES_DIR' && stow nvim"
         su - "$SUDO_USER" -c "cd '$DOTFILES_DIR' && stow tmux"
         su - "$SUDO_USER" -c "cd '$DOTFILES_DIR' && stow Scripts"
-        su - "$SUDO_USER" -c "cd '$DOTFILES_DIR' && stow .fonts"
-        su - "$SUDO_USER" -c "cd '$DOTFILES_DIR' && stow .bashrc"
+        su - "$SUDO_USER" -c "cd '$DOTFILES_DIR' && stow fonts"
+        su - "$SUDO_USER" -c "cd '$DOTFILES_DIR' && stow bashrc"
 else
         echo "Failed to clone the Dotfiles repository. Exiting..."
         exit 1
