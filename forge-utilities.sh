@@ -1,13 +1,15 @@
 #!/bin/bash
 
+# Variables
+SUDO_USER_HOME=$(getent passwd "$SUDO_USER" | cut -d: -f6)
 DOTFILES_URL="https://github.com/alexandroskw/dotfiles"
-NAME="dotfiles"
+NAME="$SUDO_USER_HOME/dotfiles"
 ALACRITTY_THEMES_URL="https://github.com/alacritty/alacritty-theme"
-THEMES_FOLDER="themes"
+THEMES_FOLDER="$SUDO_USER_HOME/.config/alacritty/themes/"
 TPM_URL="https://github.com/tmux-plugins/tpm"
-TPM_DIR="$HOME/tmux/plugins/tpm"
+TPM_DIR="$SUDO_USER_HOME/tmux/plugins/tpm"
 
-# Changing to $HOME directory if you are in the Forge directory
+# Changing to User home directory if you are in the Forge directory
 cd ~
 
 # Verifying the existance of the repository
@@ -52,7 +54,7 @@ cloning_repos() {
 }
 
 # Cloning the Alacritty themes repository
-cd "$HOME/.config/alacritty/" # Changing to the alacritty config path
+cd "$SUDO_USER_HOME/.config/alacritty/" # Changing to the alacritty config path
 
 cloning_repos "$DOTFILES_URL" "$NAME"
 # if [ ! -d "$THEMES_FOLDER" ]; then
