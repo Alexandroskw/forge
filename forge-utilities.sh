@@ -7,7 +7,7 @@ DOTFILES_DIR="$SUDO_USER_HOME/dotfiles"
 ALACRITTY_THEMES_URL="https://github.com/alacritty/alacritty-theme"
 ALACRITTY_THEMES_DIR="$SUDO_USER_HOME/.config/alacritty/themes/"
 TPM_URL="https://github.com/tmux-plugins/tpm"
-TPM_DIR="$SUDO_USER_HOME/tmux/plugins/tpm"
+TPM_DIR="$SUDO_USER_HOME/.tmux/plugins/tpm/"
 
 # Changing to User home directory if you are in the Forge directory
 cd "$SUDO_USER_HOME"
@@ -28,6 +28,8 @@ if [ $? -eq 0 ]; then
         su - "$SUDO_USER" -c "cd '$DOTFILES_DIR' && stow nvim"
         su - "$SUDO_USER" -c "cd '$DOTFILES_DIR' && stow tmux"
         su - "$SUDO_USER" -c "cd '$DOTFILES_DIR' && stow Scripts"
+        su - "$SUDO_USER" -c "cd '$DOTFILES_DIR' && stow .fonts"
+        su - "$SUDO_USER" -c "cd '$DOTFILES_DIR' && stow .bashrc"
 else
         echo "Failed to clone the Dotfiles repository. Exiting..."
         exit 1
@@ -60,20 +62,10 @@ cloning_repos() {
 }
 
 # Cloning the Alacritty themes repository
-cd "$SUDO_USER_HOME/.config/alacritty/" # Changing to the alacritty config path
-
 cloning_repos "$ALACRITTY_THEMES_URL" "$ALACRITTY_THEMES_DIR"
-# if [ ! -d "$ALACRITTY_THEMES_DIR" ]; then
-#         echo "The folder is not forged. Creating and cloning..."
-#         # Creating the folder for the Alacritty themes repo git clone "$ALACRITTY_THEMES_URL" "$ALACRITTY_THEMES_DIR"
-# else
-#         echo "The folder is forged. Skipping..."
-# fi
 
-# Cloning the TPM for TMUX
-# if [ -d "$TPM_DIR" ]; then
-#         echo "The folder is not forged. Creating and cloning..."
-# fi
+# Cloning the Tmux Plugin Manager repository
+cloning_repos "$TPM_URL" "$TPM_DIR"
 
 # Installing Starship framework
 echo "Installing Starship prompt framework..."
