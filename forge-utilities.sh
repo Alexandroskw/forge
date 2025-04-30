@@ -76,4 +76,5 @@ cloning_repos "$ALACRITTY_THEMES_URL" "$ALACRITTY_THEMES_DIR"
 # fi
 
 # Installing Starship framework
-STARSHIP="curl -sS https://starship.rs/install.sh | sh"
+echo "Installing Starship prompt framework..."
+curl -sS https://starship.rs/install.sh | sh
