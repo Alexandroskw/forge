@@ -2,11 +2,11 @@
 
 # Variables
 DOTFILES_URL="https://github.com/alexandroskw/dotfiles"
-DOTFILES_DIR="~/dotfiles"
+DOTFILES_DIR="$HOME/dotfiles"
 ALACRITTY_THEMES_URL="https://github.com/alacritty/alacritty-theme"
-ALACRITTY_THEMES_DIR="~/.config/alacritty/themes/"
+ALACRITTY_THEMES_DIR="$HOME/.config/alacritty/themes/"
 TPM_URL="https://github.com/tmux-plugins/tpm"
-TPM_DIR="~/.tmux/plugins/tpm/"
+TPM_DIR="$HOME/.tmux/plugins/tpm/"
 
 set -e
 
@@ -18,19 +18,23 @@ if [ -d "$DOTFILES_DIR" ]; then
         echo "The dotfiles repository already cloned. Skipping..."
 else
         echo "Cloning the repo. Wait..."
-        git clone "$DOTFILES_URL"
+        git clone "$DOTFILES_URL" "$DOTFILES_DIR"
+fi
+
+if ! command -v stow &> /dev/null; then
+        echo "Stow is not installed. Exiting the forge..."
+        exit 1
 fi
 
 # Verifying the cloned repo was successfuly
 if [ $? -eq 0 ]; then
-        echo "Moving to the dotfiles repo"
+        echo "Moving to the dotfiles repo for copy the dotfiles"
         cd "$DOTFILES_DIR"
         stow alacritty
         stow nvim
         stow tmux
         stow Scripts
         stow fonts
-        stow --adopt bashrc
 else
         echo "Failed to clone the Dotfiles repository. Exiting..."
         exit 1
@@ -54,7 +58,8 @@ cloning_repos() {
                 git clone "$repo_url" "$dir_target"
         fi
 
-        if [ $? -eq 0 ];then
+        local git_result=$?
+        if [ $git_result -eq 0 ]; then
                 echo "Forge of $repo_name was sucessful"
         else
                 echo "Failed to clone the $repo_name"
@@ -63,11 +68,21 @@ cloning_repos() {
 }
 
 # Cloning the Alacritty themes repository
-cloning_repos "$ALACRITTY_THEMES_URL" "$ALACRITTY_THEMES_DIR"
+if ! cloning_repos "$ALACRITTY_THEMES_URL" "$ALACRITTY_THEMES_DIR"; then
+        echo "Failed to clone the Alacritty themes repo"
+        exit 1
+fi
 
 # Cloning the Tmux Plugin Manager repository
-cloning_repos "$TPM_URL" "$TPM_DIR"
+if ! cloning_repos "$TPM_URL" "$TPM_DIR"; then
+        echo "Failed to clone the TPM repo"
+        exit 1
+fi
+
+# Installing Rust lang first
+echo "Installing Rust lang"
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
 # Installing Starship framework
-echo "Installing Starship prompt framework..."
+echo "Installing Starship prompt framework"
 curl -sS https://starship.rs/install.sh | sh
