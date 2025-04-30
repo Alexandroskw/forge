@@ -62,7 +62,7 @@ forging_packages() {
         done
 
         if [ ${#to_forge[@]} -ne 0 ]; then
-                echo "Installing: ${to_forge[*]"
+                echo "Installing: ${to_forge[*]}"
                 dnf install -y "${to_forge[@]}"
         fi
 }
