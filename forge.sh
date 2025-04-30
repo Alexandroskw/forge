@@ -14,18 +14,40 @@ logo() {
 EOF
 }
 
-# Cleaning the terminal
+# Cleaning the terminal and showing the logo
 clear
 logo
 
 # Updating Fedora
-echo "Updating the System. Please wait..."
-sudo dnf upgrade -y
-sudo dnf autoremove -y
+echo "Updating the system (your password is required). Please wait..."
+sudo bash -c "
+        sudo dnf upgrade -y
+        sudo dnf autoremove -y
 
-# Cleaning the cache of the DNF package system
-sudo dnf clean all
+        # Cleaning the cache of the DNF package system
+        sudo dnf clean all
+        # The array is "forged" or installed?
+        is_forged(){
+                sudo dnf -q "$1" &> /dev/null
+        }
 
+        # Function for install all the packages for the pack.conf arrays
+        forging_packages() {
+                local packages=("$@")
+                local to_forge=()
+        
+                for f in "${packages[@]}"; do
+                        if ! is_forged "$f"; then
+                                to_forge+=("$f")
+                        fi
+                done
+        
+                if [ ${#to_forge[@]} -ne 0 ]; then
+                        echo "Installing: ${to_forge[*]}"
+                        sudo dnf install -y "${to_forge[@]}"
+                fi
+        }
+"
 # Necessary arrays for the instalation
 source "$(dirname "$0")/pack.conf"
 
@@ -35,37 +57,6 @@ if [ ! -f "pack.conf" ]; then
         exit 1
 fi
 
-# Verifying the existence of folders ".icons", ".themes", ".fonts" for the dotfiles
-for dir in "${DIRECTORIES[@]}"; do
-        if [ ! -d "$dir" ]; then
-                echo "The directory $dir not existing. Creating..."
-                mkdir -p "$dir"
-        else
-                echo "The directory already exist. Skipping..."
-        fi
-done
-
-# The array is "forged" or installed?
-is_forged(){
-        sudo dnf -q "$1" &> /dev/null
-}
-
-# Function for install all the packages for the pack.conf arrays
-forging_packages() {
-        local packages=("$@")
-        local to_forge=()
-
-        for f in "${packages[@]}"; do
-                if ! is_forged "$f"; then
-                        to_forge+=("$f")
-                fi
-        done
-
-        if [ ${#to_forge[@]} -ne 0 ]; then
-                echo "Installing: ${to_forge[*]}"
-                sudo dnf install -y "${to_forge[@]}"
-        fi
-}
 
 # Installing the packages
 echo "󰢛 Forging the system utilities"
@@ -79,6 +70,17 @@ forging_packages "${MEDIA_UTILS[@]}"
 
 echo "󰢛 Forging the desktop utilities"
 forging_packages "${DESK_UTILS[@]}"
+
+
+# Verifying the existence of folders ".icons", ".themes", ".fonts" for the dotfiles
+for dir in "${DIRECTORIES[@]}"; do
+        if [ ! -d "$dir" ]; then
+                echo "The directory $dir not existing. Creating..."
+                mkdir -p "$dir"
+        else
+                echo "The directory already exist. Skipping..."
+        fi
+done
 
 # Cloning the dotfiles repository and verifying the execution permissions
 if [ -f "$(dirname "$0")/forge-utilities.sh" ];then
