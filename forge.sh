@@ -1,11 +1,5 @@
 #!/bin/bash
 
-# Forcing the script running as sudo
-if [ "$EUID" -ne 0 ]; then
-        echo "Run the forge as sudo ($0). Exiting..."
-        exit 1
-fi
-
 logo() {
         cat << "EOF"
         
@@ -26,14 +20,20 @@ logo
 
 # Updating Fedora
 echo "Updating the System. Please wait..."
-dnf upgrade -y
-dnf autoremove -y
+sudo dnf upgrade -y
+sudo dnf autoremove -y
 
 # Cleaning the cache of the DNF package system
-dnf clean all
+sudo dnf clean all
 
 # Necessary arrays for the instalation
 source "$(dirname "$0")/pack.conf"
+
+# Verifiying the pack.conf exists
+if [ ! -f "pack.conf" ]; then
+        echo "The forge can't start. The 'pack.conf' not found"
+        exit 1
+fi
 
 # Verifying the existence of folders ".icons", ".themes", ".fonts" for the dotfiles
 for dir in "${DIRECTORIES[@]}"; do
@@ -47,7 +47,7 @@ done
 
 # The array is "forged" or installed?
 is_forged(){
-        dnf -q "$1" &> /dev/null
+        sudo dnf -q "$1" &> /dev/null
 }
 
 # Function for install all the packages for the pack.conf arrays
@@ -63,7 +63,7 @@ forging_packages() {
 
         if [ ${#to_forge[@]} -ne 0 ]; then
                 echo "Installing: ${to_forge[*]}"
-                dnf install -y "${to_forge[@]}"
+                sudo dnf install -y "${to_forge[@]}"
         fi
 }
 
