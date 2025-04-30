@@ -1,17 +1,15 @@
 #!/bin/bash
 
 # Variables
-SUDO_USER_HOME=$(getent passwd "$SUDO_USER" | cut -d: -f6)
 DOTFILES_URL="https://github.com/alexandroskw/dotfiles"
-DOTFILES_DIR="$SUDO_USER_HOME/dotfiles"
+DOTFILES_DIR="~/dotfiles"
 ALACRITTY_THEMES_URL="https://github.com/alacritty/alacritty-theme"
-ALACRITTY_THEMES_DIR="$SUDO_USER_HOME/.config/alacritty/themes/"
+ALACRITTY_THEMES_DIR="~/.config/alacritty/themes/"
 TPM_URL="https://github.com/tmux-plugins/tpm"
-TPM_DIR="$SUDO_USER_HOME/.tmux/plugins/tpm/"
+TPM_DIR="~/.tmux/plugins/tpm/"
 
 # Changing to User home directory if you are in the Forge directory
-cd "$SUDO_USER_HOME"
-
+cd ~
 # Verifying the existance of the repository
 if [ -d "$DOTFILES_DIR" ]; then
         echo "The dotfiles repository already cloned. Skipping..."
@@ -24,12 +22,12 @@ fi
 if [ $? -eq 0 ]; then
         echo "Moving to the dotfiles repo"
         cd "$DOTFILES_DIR"
-        su - "$SUDO_USER" -c "cd '$DOTFILES_DIR' && stow alacritty"
-        su - "$SUDO_USER" -c "cd '$DOTFILES_DIR' && stow nvim"
-        su - "$SUDO_USER" -c "cd '$DOTFILES_DIR' && stow tmux"
-        su - "$SUDO_USER" -c "cd '$DOTFILES_DIR' && stow Scripts"
-        su - "$SUDO_USER" -c "cd '$DOTFILES_DIR' && stow fonts"
-        su - "$SUDO_USER" -c "cd '$DOTFILES_DIR' && stow bashrc"
+        stow alacritty
+        stow nvim
+        stow tmux
+        stow Scripts
+        stow fonts
+        stow bashrc
 else
         echo "Failed to clone the Dotfiles repository. Exiting..."
         exit 1
