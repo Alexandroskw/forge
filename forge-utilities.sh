@@ -9,7 +9,8 @@ TPM_URL="https://github.com/tmux-plugins/tpm"
 TPM_DIR="~/.tmux/plugins/tpm/"
 
 # Changing to User home directory if you are in the Forge directory
-cd ~
+cd "$HOME"
+
 # Verifying the existance of the repository
 if [ -d "$DOTFILES_DIR" ]; then
         echo "The dotfiles repository already cloned. Skipping..."
@@ -27,7 +28,7 @@ if [ $? -eq 0 ]; then
         stow tmux
         stow Scripts
         stow fonts
-        stow bashrc
+        stow --adopt bashrc
 else
         echo "Failed to clone the Dotfiles repository. Exiting..."
         exit 1
