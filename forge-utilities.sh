@@ -8,6 +8,8 @@ ALACRITTY_THEMES_DIR="~/.config/alacritty/themes/"
 TPM_URL="https://github.com/tmux-plugins/tpm"
 TPM_DIR="~/.tmux/plugins/tpm/"
 
+set -e
+
 # Changing to User home directory if you are in the Forge directory
 cd "$HOME"
 

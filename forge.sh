@@ -18,6 +18,8 @@ EOF
 clear
 logo
 
+set -e
+
 # Updating Fedora
 echo "Updating the system (your password is required). Please wait..."
 sudo dnf upgrade -y
