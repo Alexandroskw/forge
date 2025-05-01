@@ -1,12 +1,11 @@
 # FORGE
-Welcome to the
-░▒▓████████▓▒░░▒▓██████▓▒░ ░▒▓███████▓▒░  ░▒▓██████▓▒░ ░▒▓████████▓▒░ 
-░▒▓█▓▒░      ░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░        
-░▒▓█▓▒░      ░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░       ░▒▓█▓▒░                                                                                                                                          ## The __problem__
-░▒▓██████▓▒░ ░▒▓█▓▒░░▒▓█▓▒░░▒▓███████▓▒░ ░▒▓█▓▒▒▓███▓▒░░▒▓██████▓▒░                                                                                                                                     Every time I install Fedora in a new computer, I always open the terminal and start typing `sudo dnf install ...`
-░▒▓█▓▒░      ░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░                                                                                                                                          It's so annoying typing every time the same and remember what packages I missed to install and set my aliases in the
-░▒▓█▓▒░      ░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░                                                                                                                                          bash config.
-░▒▓█▓▒░       ░▒▓██████▓▒░ ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓██████▓▒░ ░▒▓████████▓▒░ 
+Welcome to the **Forge**.
+
+## The __problem__
+Every time I install Fedora in a new computer, I always open the terminal and start typing `sudo dnf install ...`
+It's so annoying typing every time the same and remember what packages I missed to install and set my aliases in the
+bash config.
+
 ## The __solution__
 Inspired in a YouTube video, I see what I can automatize the installing the all stuff only running a simple bash script.
 So I decided to try it my self and make my own bash script to automatize the installation of my [dotfiles](https://github.com/Alexandroskw/dotfiles)
