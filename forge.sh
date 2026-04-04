@@ -6,13 +6,19 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 CYAN='\033[0;36m'
-MAGENTA='\033[0;35m'
 BOLD='\033[1m'
 DIM='\033[2m'
-RESET='\033[0m'
+NC='\033[0m'
+
+info()    { echo -e "${CYAN}${BOLD} :: ${NC}$*"; }
+success()      { echo -e "${GREEN}${BOLD} ✔  ${NC}$*"; }
+skip()    { echo -e "${DIM} →  $*${NC}"; }
+warn()    { echo -e "${YELLOW}${BOLD} ⚠  ${NC}$*"; }
+error()    { echo -e "${RED}${BOLD} ✘  ${NC}$*" >&2; }
+section() { echo -e "\n${BLUE}${BOLD}▶ $*${NC}"; echo -e "${DIM}$(printf '─%.0s' {1..50})${NC}"; }
 
 logo() {
-        echo -e "${MAGENTA}"
+        echo -e "${RED}"${BOLD}
         cat << "EOF"
 ░▒▓████████▓▒░░▒▓██████▓▒░ ░▒▓███████▓▒░  ░▒▓██████▓▒░ ░▒▓████████▓▒░ 
 ░▒▓█▓▒░      ░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░        
@@ -22,38 +28,25 @@ logo() {
 ░▒▓█▓▒░      ░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░░▒▓█▓▒░        
 ░▒▓█▓▒░       ░▒▓██████▓▒░ ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓██████▓▒░ ░▒▓████████▓▒░ 
 EOF
-    echo -e "${RESET}"
-}
-
-# UI Helpers
-info()    { echo -e "${CYAN}${BOLD}  ::${RESET} $*"; }
-success() { echo -e "${GREEN}${BOLD}  ✔${RESET}  $*"; }
-warning() { echo -e "${YELLOW}${BOLD}  ⚠${RESET}  $*"; }
-error()   { echo -e "${RED}${BOLD}  ✘${RESET}  $*" >&2; }
-section() { echo -e "\n${BLUE}${BOLD}══ $* ${RESET}${DIM}$(printf '═%.0s' {1..40})${RESET}"; }
-
-spinner() {
-    local pid=$1
-    local msg="${2:-Processing...}"
-    local frames=('⠋' '⠙' '⠹' '⠸' '⠼' '⠴' '⠦' '⠧' '⠇' '⠏')
-    local i=0
-    tput cnorm 2>/dev/null
-    printf "\r\033[K"
+    echo -e "${NC}"
 }
 
 progress_bar() {
-    local current=$1
-    local total=$2
-    local label="${3:-}"
+    local label="$1"
+    local current="$2"
+    local total="$3"
     local width=30
     local filled=$(( current * width / total ))
     local empty=$((width-filled))
     local pct=$((current*100/total))
-    local bar="${GREEN}$(printf '█%.0s' $(seq 1 $filled 2>/dev/null))${DIM}$(printf '░%.0s' $(seq 1 $empty 2>/dev/null))${RESET}"
-    printf "\r  [%b] ${BOLD}%3d%%${RESET}  %-30s" "$bar" "$pct" "$label"
-}
 
-set -e
+    local bar=""
+    local i
+    for ((i=0; i<filled; i++)); do bar="█"; done
+    for ((i=0; i<empty; i++)); do bar="░"; done
+
+    printf "\r  ${CYAN}[${GREEN}%s${DIM}${CYAN}]${NC} ${BOLD}%3d%%${NC}  %s" "$bar" "$pct" "$label"
+}
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PACK_CONF="$SCRIPT_DIR/pack.conf"
@@ -64,27 +57,27 @@ if [ ! -f "$PACK_CONF" ]; then
     exit 1
 fi
 
+source "$PACK_CONF"
+
 # Cleaning the terminal and showing the logo
+set -e
 clear
 logo
 
 # Updating Fedora
 section "Updating the system"
-info "Your password is required"
-sudo dnf upgrade -y &>/dev/null &
-
-sudo dnf autoremove -y &>/dev/null &
-spinner $! "Upgrading system..."
+info "Your password is required..."
+sudo dnf upgrade -y
+sudo dnf autoremove -y
 success "System upgraded"
 
 # Cleaning the cache of the DNF package system
 sudo dnf clean all
-spinner $! "Cleaning DNF cache..."
 success "Cache cleaned"
 
 # The array is "forged" or installed?
 is_forged(){
-    sudo rpm -q "$1" &> /dev/null
+    sudo dnf list installed "$1" &> /dev/null
 }
 
 # Function for install all the packages for the pack.conf arrays
@@ -92,70 +85,72 @@ forging_packages() {
     local section_name="$1"
     shift
     local packages=("$@")
-    local to_forge=()
-
     section "$section_name"
+    local to_forge=()
 
     # Verifiying the missing packages
     local total=${packages[@]}
     local checked=0
     for pkg in "${packages[@]}"; do
-        ((checked++)) || true
-        progress_bar "$checked" "$total" "Verifiying $pkg"
+        i=$(( i + 1 ))
+        progress_bar "Verifiying $pkg" "$checked" "$total" 
         if ! is_forged "$pkg"; then
             to_forge+=("$pkg")
         fi
     done
+    echo 
 
     if [ ${#to_forge[@]} -eq 0 ]; then
         success "All packages already installed"
         return 0
     fi
 
-    info "Installing ${BOLD}${#to_forge[@]}${RESET} package(s): ${DIM}${to_forge[*]${RESET}}"
+    info "Installing: ${BOLD}${to_forge[*]}${NC}"
 
     local installed=0
     local failed=()
+    local total=${#to_forge[@]}
 
-    for pkg in "$[to_forge[@]]"; do
-        if sudo dnf install -y "$pkg" &>/dev/null; then
-            ((installed++)) || true
-            progress_bar "$installed" "${to_forge[@]}" "Installing: $pkg"
+    for pkg in "${to_forge[@]}"; do
+        if sudo dnf install -y "$pkg"; then
+            installed=$((installed + 1))
+            progress_bar "$pkg installed" "$installed" "$total"
         else
             failed+=("$pkg")
+            warn "Could not install $pkg"
         fi
     done
     echo
 
-    success "Installed: $installed / ${to_forge[@]}"
+    success "Installed: $installed / $to_forge"
     if [ ${#failed[@]} -gt 0 ]; then
-        warning "Cannot be install: ${failed[*]}"
+        warn "Failed packages: ${failed[*]}"
     fi
 }
 
 # Installing the packages
-forging_packages " System utils            ${UTILS[@]}"
-forging_packages " Programming utils       ${PROGRAMMING[@]}"
-forging_packages " Media utils             ${MEDIA_UTILS[@]}"
+forging_packages "System utils            ${UTILS[@]}"
+forging_packages "Programming utils       ${PROGRAMMING[@]}"
+forging_packages "Media utils             ${MEDIA_UTILS[@]}"
 
 # Verifying the existence of folders ".icons", ".themes", ".fonts" for the dotfiles
-section "Preparing directories"
+section "Preparing directories..."
 for dir in "${DIRECTORIES[@]}"; do
     if [ ! -d "$dir" ]; then
         mkdir -p "$dir"
-        success "The directory $dir not existing. Creating..."
+        success "The directory $dir not exist. Creating..."
     else
-        info "The directory ${DIM}$dir${RESET} already exist. Skipping..."
+        info "The directory $dir already exist. Skipping..."
     fi
 done
 
 # Cloning the dotfiles repository and verifying the execution permissions
 FORGE_UTILS="$SCRIPT_DIR/forge-utilities.sh"
-if [ -f "$FORGE_UTILS" ];then
+if [ -f "$FORGE_UTILS" ]; then
     chmod +x "$FORGE_UTILS"
     "$FORGE_UTILS"
 else
-    warning "forge-utilities not found. Skipping the dotfiles configuration..."
+    warn "forge-utilities not found. Skipping the dotfiles configuration..."
 fi
 
 # Showing the logo again and a message for reboot the system
@@ -167,4 +162,4 @@ echo "║               󰢛 The forge is closed 󰢛                 ║"
 echo "║                 Reboot your system                    ║"
 echo "║                for apply the changes                  ║"
 echo "╚═══════════════════════════════════════════════════════╝"
-echo -e "${RESET}"
+echo -e "${NC}"
