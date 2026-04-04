@@ -1,5 +1,37 @@
 #!/bin/bash
 
+# Colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+CYAN='\033[0;36m'
+BOLD='\033[1m'
+DIM='\033[2m'
+RESET='\033[0m'
+
+# Helpers
+info()    { echo -e "${CYAN}${BOLD}  ::${RESET} $*"; }
+success() { echo -e "${GREEN}${BOLD}  ✔${RESET}  $*"; }
+warning() { echo -e "${YELLOW}${BOLD}  ⚠${RESET}  $*"; }
+error()   { echo -e "${RED}${BOLD}  ✘${RESET}  $*" >&2; }
+section() { echo -e "\n${BLUE}${BOLD}══ $* ${RESET}${DIM}$(printf '═%.0s' {1..40})${RESET}"; }
+
+spinner() {
+    local pid=$1
+    local msg="${2:-Procesando...}"
+    local frames=('⠋' '⠙' '⠹' '⠸' '⠼' '⠴' '⠦' '⠧' '⠇' '⠏')
+    local i=0
+    tput civis 2>/dev/null
+    while kill -0 "$pid" 2>/dev/null; do
+        printf "\r  ${CYAN}${frames[i]}${RESET}  ${DIM}%s${RESET}" "$msg"
+        i=$(( (i + 1) % ${#frames[@]} ))
+        sleep 0.08
+    done
+    tput cnorm 2>/dev/null
+    printf "\r\033[K"
+}
+
 # Variables
 DOTFILES_URL="https://github.com/alexandroskw/dotfiles"
 DOTFILES_DIR="$HOME/dotfiles"
@@ -15,74 +47,81 @@ cd "$HOME"
 
 # Verifying the existance of the repository
 if [ -d "$DOTFILES_DIR" ]; then
-        echo "The dotfiles repository already cloned. Skipping..."
+    info "The dotfiles repository already cloned. Skipping..."
 else
-        echo "Cloning the repo. Wait..."
-        git clone "$DOTFILES_URL" "$DOTFILES_DIR"
+    info "Cloning the repo. Wait..."
+    git clone "$DOTFILES_URL" "$DOTFILES_DIR" &>/dev/null &
+    spinner $! "Cloning $DOTFILES_URL"
+    success "Dotfiles cloned"
 fi
 
-if ! command -v stow &> /dev/null; then
-        echo "Stow is not installed. Exiting the forge..."
-        exit 1
+if ! command -v stow &>/dev/null; then
+    error "Stow is not installed. Exiting the forge..."
+    info "Install first stow with: sudo dnf install stow"
+    exit 1
 fi
 
-# Verifying the cloned repo was successfuly
-if [ $? -eq 0 ]; then
-        echo "Moving to the dotfiles repo for copy the dotfiles"
-        cd "$DOTFILES_DIR"
-        stow alacritty
-        stow nvim
-        stow tmux
-        stow Scripts
-        stow fonts
-else
-        echo "Failed to clone the Dotfiles repository. Exiting..."
-        exit 1
-fi
+stow_packages() {
+    local pkg="$1"
+    if [ -d "$pkg" ]; then
+        stow "$pkg" && success "stow $pkg" || warning "stow $pkg failed"
+    else
+        warning "$pkg directory not found in the dotfiles"
+    fi
+}
+
+stow_packages alacritty
+stow_packages nvim
+stow_packages tmux
+stow_packages Scripts
+stow_packages fonts
 
 # Function for clone all the repos
 cloning_repos() {
-        local repo_url="$1"
-        local dir_target="$2"
-        local repo_name="$3"
+    local repo_url="$1"
+    local dir_target="$2"
+    local repo_name="${3:-$(basename "$repo_url")}"
 
-        # Verifiying the exact name of the cloned repository
-        if [ -z "$repo_name" ]; then
-                repo_name="$dir_target"
-        fi
+    # Verifiying the exact name of the cloned repository
+    if [ -d "$repo_target" ]; then
+        info "$repo_name already exist. Skipping..."
+        return 0
+    fi
 
-        if [ -d "$dir_target" ]; then
-                echo "The $repo_name already cloned. Skipping..."
-        else
-                echo "Forging the repo $repo_name"
-                git clone "$repo_url" "$dir_target"
-        fi
+    info "Cloning $repo_name..."
+    git clone "$repo_url" "$dir_target" &>/dev/null &
+    spinner $! "Forging the repo $repo_name"
 
-        local git_result=$?
-        if [ $git_result -eq 0 ]; then
-                echo "Forge of $repo_name was sucessful"
-        else
-                echo "Failed to clone the $repo_name"
-                exit 1
-        fi
+    if [ -d "$dir_target" ]; then
+        success "Forge of $repo_name was sucessful"
+    else
+        error "Failed to clone the $repo_name"
+        exit 1
+    fi
 }
 
-# Cloning the Alacritty themes repository
-if ! cloning_repos "$ALACRITTY_THEMES_URL" "$ALACRITTY_THEMES_DIR"; then
-        echo "Failed to clone the Alacritty themes repo"
-        exit 1
-fi
+section "Repos adicionales"
 
-# Cloning the Tmux Plugin Manager repository
-if ! cloning_repos "$TPM_URL" "$TPM_DIR"; then
-        echo "Failed to clone the TPM repo"
-        exit 1
-fi
+mkdir -p "$ALACRITTY_THEMES_DIR"
+cloning_repos "$ALACRITTY_THEMES_URL" "$ALACRITTY_THEMES_DIR" "Alacritty Themes"
+cloning_repos "$TPM_URL" "$TPM_DIR" "Tmux Plugin Manager"
 
 # Installing Rust lang first
-echo "Installing Rust lang"
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+section "Rust"
+if command -v rustup &>/dev/null; then
+    info "Rust is already installed. Skipping..."
+else
+    info "Installing Rust"
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+    success "Rust installed successfuly"
+fi
 
 # Installing Starship framework
-echo "Installing Starship prompt framework"
-curl -sS https://starship.rs/install.sh | sh
+section "Starship prompt"
+if command -v rustup &>/dev/null; then
+    info "Starship prompt is already installed. Skipping..."
+else
+    info "Installing Starship prompt"
+    curl -sS https://starship.rs/install.sh | sh
+    success "Starship installed successfuly"
+fi

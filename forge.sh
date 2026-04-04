@@ -73,74 +73,98 @@ section "Updating the system"
 info "Your password is required"
 sudo dnf upgrade -y &>/dev/null &
 
+sudo dnf autoremove -y &>/dev/null &
+spinner $! "Upgrading system..."
+success "System upgraded"
+
 # Cleaning the cache of the DNF package system
 sudo dnf clean all
+spinner $! "Cleaning DNF cache..."
+success "Cache cleaned"
 
 # The array is "forged" or installed?
 is_forged(){
-    sudo dnf -q "$1" &> /dev/null
+    sudo rpm -q "$1" &> /dev/null
 }
 
 # Function for install all the packages for the pack.conf arrays
 forging_packages() {
+    local section_name="$1"
+    shift
     local packages=("$@")
     local to_forge=()
 
-    for f in "${packages[@]}"; do
-        if ! is_forged "$f"; then
-            to_forge+=("$f")
+    section "$section_name"
+
+    # Verifiying the missing packages
+    local total=${packages[@]}
+    local checked=0
+    for pkg in "${packages[@]}"; do
+        ((checked++)) || true
+        progress_bar "$checked" "$total" "Verifiying $pkg"
+        if ! is_forged "$pkg"; then
+            to_forge+=("$pkg")
         fi
     done
 
-    if [ ${#to_forge[@]} -ne 0 ]; then
-        echo "Installing: ${to_forge[*]}"
-        sudo dnf install -y "${to_forge[@]}"
+    if [ ${#to_forge[@]} -eq 0 ]; then
+        success "All packages already installed"
+        return 0
+    fi
+
+    info "Installing ${BOLD}${#to_forge[@]}${RESET} package(s): ${DIM}${to_forge[*]${RESET}}"
+
+    local installed=0
+    local failed=()
+
+    for pkg in "$[to_forge[@]]"; do
+        if sudo dnf install -y "$pkg" &>/dev/null; then
+            ((installed++)) || true
+            progress_bar "$installed" "${to_forge[@]}" "Installing: $pkg"
+        else
+            failed+=("$pkg")
+        fi
+    done
+    echo
+
+    success "Installed: $installed / ${to_forge[@]}"
+    if [ ${#failed[@]} -gt 0 ]; then
+        warning "Cannot be install: ${failed[*]}"
     fi
 }
 
-# Necessary arrays for the instalation
-source "$(dirname "$0")/pack.conf"
-
-# Verifiying the pack.conf exists
-if [ ! -f "pack.conf" ]; then
-    echo "The forge can't start. The 'pack.conf' not found"
-    exit 1
-fi
-
 # Installing the packages
-echo "󰢛 Forging the system utilities"
-forging_packages "${UTILS[@]}"
-
-echo "󰢛 Forging the programming utilities"
-forging_packages "${PROGRAMMING[@]}"
-
-echo "󰢛 Forging the media utilities"
-forging_packages "${MEDIA_UTILS[@]}"
-
-echo "󰢛 Forging the desktop utilities"
-forging_packages "${DESK_UTILS[@]}"
+forging_packages " System utils            ${UTILS[@]}"
+forging_packages " Programming utils       ${PROGRAMMING[@]}"
+forging_packages " Media utils             ${MEDIA_UTILS[@]}"
 
 # Verifying the existence of folders ".icons", ".themes", ".fonts" for the dotfiles
+section "Preparing directories"
 for dir in "${DIRECTORIES[@]}"; do
     if [ ! -d "$dir" ]; then
-        echo "The directory $dir not existing. Creating..."
         mkdir -p "$dir"
+        success "The directory $dir not existing. Creating..."
     else
-        echo "The directory already exist. Skipping..."
+        info "The directory ${DIM}$dir${RESET} already exist. Skipping..."
     fi
 done
 
 # Cloning the dotfiles repository and verifying the execution permissions
-if [ -f "$(dirname "$0")/forge-utilities.sh" ];then
-    chmod +x "$(dirname "$0")/forge-utilities.sh"
-    "$(dirname "$0")/forge-utilities.sh"
+FORGE_UTILS="$SCRIPT_DIR/forge-utilities.sh"
+if [ -f "$FORGE_UTILS" ];then
+    chmod +x "$FORGE_UTILS"
+    "$FORGE_UTILS"
 else
-    echo "forge-utilities not found. Skipping the dotfiles configuration..."
+    warning "forge-utilities not found. Skipping the dotfiles configuration..."
 fi
 
 # Showing the logo again and a message for reboot the system
+clear
 logo
+echo -e "${GREEN}${BOLD}"
 echo "╔═══════════════════════════════════════════════════════╗"
 echo "║               󰢛 The forge is closed 󰢛                 ║"
 echo "║                 Reboot your system                    ║"
+echo "║                for apply the changes                  ║"
 echo "╚═══════════════════════════════════════════════════════╝"
+echo -e "${RESET}"
