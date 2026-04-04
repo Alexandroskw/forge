@@ -20,7 +20,7 @@ section() { echo -e "\n${BLUE}${BOLD}▶ $*${NC}"; echo -e "${DIM}$(printf '─%
 
 # Variables
 DOTFILES_URL="https://github.com/alexandroskw/dotfiles"
-DOTFILES_DIR="$HOME/dotfiles"
+DOTFILES_DIR="$HOME/.dotfiles"
 ALACRITTY_THEMES_URL="https://github.com/alacritty/alacritty-theme"
 ALACRITTY_THEMES_DIR="$HOME/.config/alacritty/themes/"
 TPM_URL="https://github.com/tmux-plugins/tpm"
