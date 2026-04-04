@@ -10,6 +10,7 @@ BOLD='\033[1m'
 DIM='\033[2m'
 NC='\033[0m'
 
+# Helpers
 info()    { echo -e "${CYAN}${BOLD} :: ${NC}$*"; }
 success()      { echo -e "${GREEN}${BOLD} ✔  ${NC}$*"; }
 skip()    { echo -e "${DIM} →  $*${NC}"; }
@@ -37,8 +38,8 @@ progress_bar() {
     local total="$3"
     local width=30
     local filled=$(( current * width / total ))
-    local empty=$((width-filled))
-    local pct=$((current*100/total))
+    local empty=$((width - filled))
+    local pct=$((current * 100 / total))
 
     local bar=""
     local i
@@ -92,8 +93,7 @@ forging_packages() {
     local total=${packages[@]}
     local checked=0
     for pkg in "${packages[@]}"; do
-        i=$(( i + 1 ))
-        progress_bar "Verifiying $pkg" "$checked" "$total" 
+        info "Verifiying $pkg" "$checked" "$total" 
         if ! is_forged "$pkg"; then
             to_forge+=("$pkg")
         fi
